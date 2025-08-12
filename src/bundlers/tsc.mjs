@@ -50,11 +50,9 @@ export const build = async (app, options) =>
        {
               const build = () =>
               {
-
-
                      return new Promise((resolve, _) =>
                      {
-                            const process = exec(`${TSC_COMMAND}`, (error, stdout, stderr) =>
+                            const process = exec(TSC_COMMAND, (error, stdout, stderr) =>
                             {
                                    const hasError = error ?? stderr;
                                    // resolve stdout error message, otherwise return true if succesful 
