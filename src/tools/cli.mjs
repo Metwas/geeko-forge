@@ -43,6 +43,7 @@ Options:
   -t,  --target            Build/bundler target (defaults to nest)
   -o,  --out [file]        Output directory for build (defaults to dist)
   -v,  --verbose           Outputs all stdout, stderr logs
+  -n,  --name              Project build name 
   -c,  --skip-compile      Skips main application compiling
   -b,  --skip-bundle       Skips application asset bundling
   -e,  --env               Specify environment for configuration & asset files
