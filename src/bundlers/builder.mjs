@@ -25,7 +25,7 @@
 /**_-_-_-_-_-_-_-_-_-_-_-_-_- @Imports _-_-_-_-_-_-_-_-_-_-_-_-_-*/
 
 import { getTimeString, sleep } from "../tools/time.mjs";
-import { error, ok } from "../tools/cli.mjs";
+import { error, ok, usage } from "../tools/cli.mjs";
 import * as file from "../tools/file.mjs";
 import { resolve } from "node:path";
 import * as tsc from "./tsc.mjs";
@@ -44,16 +44,22 @@ import chalk from "chalk";
  */
 export const build = async function (flags, log)
 {
-       console.log(flags);
-       const app = "";
+       const app = flags[ "n" ] ?? "app";
 
-       const skipCompile = flags[ "c" ] || flags[ "skip-compile" ] || false;
-       const skipBundle = flags[ "b" ] || flags[ "skip-bundle" ] || false;
+       const skipCompile = flags[ "c" ] ?? flags[ "skip-compile" ] ?? false;
+       const skipBundle = flags[ "b" ] ?? flags[ "skip-bundle" ] ?? false;
 
-       const output = `${flags[ "o" ] || flags[ "out" ] || 'dist'}`;
-       const environment = flags[ "e" ] || flags[ "env" ] || "production";
-       const verbose = flags[ "v" ] || flags[ "verbose" ];
-       const type = flags[ "t" ] || flags[ "target" ];
+       const assets = `${flags[ "a" ] ?? flags[ "assets" ] ?? resolve(process.cwd(), "./assets")}`;
+       const environment = flags[ "e" ] ?? flags[ "env" ] ?? "production";
+       const output = `${flags[ "o" ] ?? flags[ "out" ] ?? "dist"}`;
+       const verbose = flags[ "v" ] ?? flags[ "verbose" ];
+       const type = flags[ "t" ] ?? flags[ "target" ];
+
+       if (!type)
+       {
+              log(`${chalk.yellowBright("Missing builder target\n" + usage)}`);
+              return false;
+       }
 
        const rootDirectory = process.cwd();
 
@@ -99,6 +105,7 @@ export const build = async function (flags, log)
 
               log(`${header}\t${statusText}`, false);
               log(false);
+
               await sleep(50);
        }
 
