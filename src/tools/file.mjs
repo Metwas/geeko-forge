@@ -70,7 +70,7 @@ export const APP_COMMON_DIRECTORY = "common";
  * @public
  * @type {String}
  */
-export const ROOT_ASSETS_PATH = resolve(__dirname, "../../../assets");
+export const ROOT_ASSETS_PATH = resolve(process.cwd(), "./assets");
 
 /**
  * Bundles assets defined in the provided @see options.destination
@@ -82,17 +82,18 @@ export const bundleAssets = async function (options)
 {
        try
        {
-              const destination = options[ "destination" ];
+              const destination = options.destination;
 
-              const assetsPath = ROOT_ASSETS_PATH;
+              const assetsPath = options.assets ?? ROOT_ASSETS_PATH;
               const commonPath = join(assetsPath, APP_COMMON_DIRECTORY);
-              const overrides = join(assetsPath, options[ "environment" ]);
+              const overrides = join(assetsPath, options.environment);
+
               /** First, attempt to copy the @see common default files */
               if (existsSync(commonPath) === true)
               {
                      /** Copy all asset files/directories from the @see assetsPath directory */
                      await copy({
-                            verbose: options[ "verbose" ],
+                            verbose: options.verbose,
                             destination: destination,
                             path: commonPath
                      });
@@ -102,7 +103,7 @@ export const bundleAssets = async function (options)
               if (existsSync(overrides) === true)
               {
                      await copy({
-                            verbose: options[ "verbose" ],
+                            verbose: options.verbose,
                             destination: destination,
                             path: overrides
                      });
@@ -196,11 +197,10 @@ export const copy = function (options)
  */
 export const getApplicationMain = function (name)
 {
-       const root = resolve(__dirname, "../../../");
-       const path = `${root}${sep}${name}`;
+       const root = process.cwd();
 
        /** Check if application @see name directory exists */
-       if (existsSync(path) === true)
+       if (existsSync(root) === true)
        {
               const eLength = APPLICATION_INDEX_EXTENSIONS.length;
               const length = APPLICATION_INDEX_FILES.length;
@@ -214,7 +214,7 @@ export const getApplicationMain = function (name)
                      for (; eIndex < eLength; ++eIndex)
                      {
                             const extension = APPLICATION_INDEX_EXTENSIONS[ eIndex ];
-                            const filePath = `${path}${sep}src${sep}${main}${extension}`;
+                            const filePath = `${root}${sep}src${sep}${main}${extension}`;
 
                             if (existsSync(filePath) === true)
                             {
@@ -268,7 +268,7 @@ export const loadRootTsConfig = function (quiet)
 {
        try
        {
-              const rootPath = resolve(__dirname, "../../tsconfig.json");
+              const rootPath = resolve(process.cwd(), "./tsconfig.json");
               const file = readFileSync(rootPath);
 
               return JSON.parse(file);
