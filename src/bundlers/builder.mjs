@@ -49,12 +49,6 @@ export const build = async function (flags, log)
        const skipCompile = flags[ "c" ] ?? flags[ "skip-compile" ] ?? false;
        const skipBundle = flags[ "b" ] ?? flags[ "skip-bundle" ] ?? false;
 
-       const assets = `${flags[ "a" ] ?? flags[ "assets" ] ?? resolve(process.cwd(), "./assets")}`;
-       const environment = flags[ "e" ] ?? flags[ "env" ] ?? "production";
-       const output = `${flags[ "o" ] ?? flags[ "out" ] ?? "dist"}`;
-       const verbose = flags[ "v" ] ?? flags[ "verbose" ];
-       const index = flags[ "i" ] ?? flags[ "index" ];
-       const type = flags[ "t" ] ?? flags[ "target" ];
        const help = flags[ "h" ] ?? flags[ "help" ];
 
        if (help)
@@ -63,16 +57,48 @@ export const build = async function (flags, log)
               return false;
        }
 
+       const type = flags[ "t" ] ?? flags[ "target" ];
+
        if (!type)
        {
               log(`${chalk.yellowBright("Missing builder target\n" + usage)}`, false);
               return false;
        }
 
+       const assets = `${flags[ "a" ] ?? flags[ "assets" ] ?? resolve(process.cwd(), "./assets")}`;
+       const environment = flags[ "e" ] ?? flags[ "env" ] ?? "production";
+       const output = `${flags[ "o" ] ?? flags[ "out" ] ?? "dist"}`;
+       const verbose = flags[ "v" ] ?? flags[ "verbose" ];
+       const index = flags[ "i" ] ?? flags[ "index" ];
+       const strip = flags[ "strip-comments" ];
+
+       let sourceDirectory = "./src";
+       let tmpDirectory = "./tmp";
+
        const rootDirectory = process.cwd();
 
-       const directory = resolve(rootDirectory, output);
-       const main = resolve(rootDirectory, "./src");
+       let directory = resolve(rootDirectory, output);
+       let main = resolve(rootDirectory, sourceDirectory);
+
+       if (strip)
+       {
+              try
+              {
+                     /** Strip comments */
+                     await file.copy({
+                            destination: resolve(rootDirectory, tmpDirectory),
+                            stripComments: true,
+                            debug: verbose,
+                            path: main
+                     }, log);
+
+                     main = main.replace(sourceDirectory.replace("./", ""), tmpDirectory.replace("./", ""));
+              }
+              catch (error)
+              {
+                     log(`${chalk.yellowBright("Failed to strip comments, continuing to specified bundler")}`, false);
+              }
+       }
 
        let success = skipCompile;
 
