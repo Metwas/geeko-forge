@@ -53,11 +53,19 @@ export const build = async function (flags, log)
        const environment = flags[ "e" ] ?? flags[ "env" ] ?? "production";
        const output = `${flags[ "o" ] ?? flags[ "out" ] ?? "dist"}`;
        const verbose = flags[ "v" ] ?? flags[ "verbose" ];
+       const index = flags[ "i" ] ?? flags[ "index" ];
        const type = flags[ "t" ] ?? flags[ "target" ];
+       const help = flags[ "h" ] ?? flags[ "help" ];
+
+       if (help)
+       {
+              log(`${chalk.yellowBright("\n" + usage)}`, false);
+              return false;
+       }
 
        if (!type)
        {
-              log(`${chalk.yellowBright("Missing builder target\n" + usage)}`);
+              log(`${chalk.yellowBright("Missing builder target\n" + usage)}`, false);
               return false;
        }
 
@@ -77,6 +85,8 @@ export const build = async function (flags, log)
                      environment: environment,
                      output: directory,
                      verbose: verbose,
+                     assets: assets,
+                     index: index,
                      main: main
               };
 
