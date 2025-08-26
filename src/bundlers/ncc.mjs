@@ -24,9 +24,9 @@
 
 /**_-_-_-_-_-_-_-_-_-_-_-_-_- @Imports _-_-_-_-_-_-_-_-_-_-_-_-_-*/
 
-import { writeFile, mkdirSync } from "node:fs";
+import { writeFile, mkdirSync, existsSync, statSync } from "node:fs";
 import { clean } from "../tools/file.mjs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import ncc from '@vercel/ncc';
 
 /**_-_-_-_-_-_-_-_-_-_-_-_-_-          _-_-_-_-_-_-_-_-_-_-_-_-_-*/
@@ -44,18 +44,35 @@ export const build = async (app, options, log) =>
 {
        try
        {
-              const result = await ncc(options[ "main" ], {
+              let executablePath = options.main;
+
+              if (statSync(options.main).isFile() === false)
+              {
+                     executablePath = resolve(options.main, "main.ts");
+
+                     if (existsSync(executablePath) === false)
+                     {
+                            executablePath = resolve(options.main, "index.ts");
+
+                            if (existsSync(executablePath) === false)
+                            {
+                                   return reject("Unable to locate main executable, try to find main.ts, index.ts. Please specify index file with the [-i,--index] flag");
+                            }
+                     }
+              }
+
+              const result = await ncc(executablePath, {
                      filterAssetBase: process.cwd(),
                      assetBuilds: false,
-                     target: 'es2020',
+                     target: 'es6',
                      minify: true,
                      quiet: true,
               });
 
-              if (typeof result?.[ "code" ] === "string")
+              if (typeof result?.code === "string")
               {
-                     const destination = options[ "output" ];
-                     const code = result[ "code" ];
+                     const destination = options.output;
+                     const code = result.code;
 
                      const name = `${app}.js`;
 
