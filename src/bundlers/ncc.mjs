@@ -32,6 +32,12 @@ import ncc from '@vercel/ncc';
 /**_-_-_-_-_-_-_-_-_-_-_-_-_-          _-_-_-_-_-_-_-_-_-_-_-_-_-*/
 
 /**
+ * @private
+ * @type {String}
+ */
+const INDEX_404_ERROR = "Unable to locate main executable, defaults to main.ts OR index.ts. Please specify index file with the [-i,--index] flag";
+
+/**
  * Invokes the @see ncc bundler API to create a single minified .js executable
  * 
  * @public
@@ -45,8 +51,9 @@ export const build = async (app, options, log) =>
        try
        {
               let executablePath = options.main;
+              let indexFile = options.index;
 
-              if (statSync(options.main).isFile() === false)
+              if (!indexFile && statSync(options.main).isFile() === false)
               {
                      executablePath = resolve(options.main, "main.ts");
 
@@ -56,8 +63,21 @@ export const build = async (app, options, log) =>
 
                             if (existsSync(executablePath) === false)
                             {
-                                   return reject("Unable to locate main executable, try to find main.ts, index.ts. Please specify index file with the [-i,--index] flag");
+                                   return {
+                                          error: INDEX_404_ERROR
+                                   };
                             }
+                     }
+              }
+              else if (indexFile)
+              {
+                     executablePath = resolve(options.main, indexFile);
+
+                     if (existsSync(executablePath) === false)
+                     {
+                            return {
+                                   error: INDEX_404_ERROR
+                            };
                      }
               }
 
