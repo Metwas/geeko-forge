@@ -27,6 +27,7 @@
 import { readFileSync, existsSync, writeFile, readFile, mkdirSync, readdirSync, statSync, unlinkSync, rmdirSync, readdir } from "node:fs";
 import { resolve, sep, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import strip from "strip-comments";
 import chalk from "chalk";
 
 /**_-_-_-_-_-_-_-_-_-_-_-_-_-          _-_-_-_-_-_-_-_-_-_-_-_-_-*/
@@ -123,14 +124,14 @@ export const bundleAssets = async function (options)
  * Copies over all directories & files from the specified @see String path to the specified @see String destination
  * 
  * @public
- * @param {String} path 
+ * @param {{ path: String, destination: String, stripComments: Boolean }} options
  * @returns {Promise<void>}
  */
-export const copy = function (options)
+export const copy = function (options, log)
 {
        return new Promise((resolve, _) =>
        {
-              const { path, destination } = options;
+              const { path, destination, stripComments } = options;
 
               readdir(path, async (error, files) =>
               {
@@ -167,19 +168,26 @@ export const copy = function (options)
                                    }
                                    else
                                    {
-                                          if (options[ "debug" ] === true)
+                                          if (options[ "debug" ] === true && log)
                                           {
-                                                 console.log(`${chalk.green("CREATE")} ${chalk.yellow("FILE")} ${destinationPath}`);
+                                                 log(`${chalk.green("CREATE")} ${chalk.yellow("FILE")} ${destinationPath}`, false);
                                           }
 
                                           /** Write file at @see destination - This will by default replace any existing files */
                                           promises.push(readWriteAsync({
                                                  destination: destinationPath,
+                                                 stripComments: stripComments,
                                                  path: filePath
-                                          }));
+                                          }, log));
                                    }
                             }
-                            catch (error) { console.log(error) }
+                            catch (error)
+                            {
+                                   if (log)
+                                   {
+                                          log(error, false);
+                                   }
+                            }
                      }
 
                      await Promise.all(promises);
@@ -235,9 +243,9 @@ export const getApplicationMain = function (name)
  * @param {Object} options 
  * @returns {Promise<Buffer>}
  */
-export const readWriteAsync = function (options)
+export const readWriteAsync = function (options, log)
 {
-       const { path, destination } = options;
+       const { path, destination, stripComments } = options;
 
        return new Promise((resolve, _) =>
        {
@@ -248,8 +256,21 @@ export const readWriteAsync = function (options)
                             return resolve();
                      }
 
+                     if (stripComments && Buffer.isBuffer(buffer))
+                     {
+                            buffer = Buffer.from(strip(buffer.toString("utf-8")));
+                     }
+
                      writeFile(destination, buffer, (error) =>
                      {
+                            if (error)
+                            {
+                                   if (log)
+                                   {
+                                          log(`${chalk.redBright(error.message)}`, false);
+                                   }
+                            }
+
                             resolve(buffer);
                      });
               });

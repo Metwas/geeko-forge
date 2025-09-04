@@ -24,12 +24,18 @@
 
 /**_-_-_-_-_-_-_-_-_-_-_-_-_- @Imports _-_-_-_-_-_-_-_-_-_-_-_-_-*/
 
-import { writeFile, mkdirSync } from "node:fs";
+import { writeFile, mkdirSync, existsSync, statSync } from "node:fs";
 import { clean } from "../tools/file.mjs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import ncc from '@vercel/ncc';
 
 /**_-_-_-_-_-_-_-_-_-_-_-_-_-          _-_-_-_-_-_-_-_-_-_-_-_-_-*/
+
+/**
+ * @private
+ * @type {String}
+ */
+const INDEX_404_ERROR = "Unable to locate main executable, defaults to main.ts OR index.ts. Please specify index file with the [-i,--index] flag";
 
 /**
  * Invokes the @see ncc bundler API to create a single minified .js executable
@@ -44,18 +50,49 @@ export const build = async (app, options, log) =>
 {
        try
        {
-              const result = await ncc(options[ "main" ], {
+              let executablePath = options.main;
+              let indexFile = options.index;
+
+              if (!indexFile && statSync(options.main).isFile() === false)
+              {
+                     executablePath = resolve(options.main, "main.ts");
+
+                     if (existsSync(executablePath) === false)
+                     {
+                            executablePath = resolve(options.main, "index.ts");
+
+                            if (existsSync(executablePath) === false)
+                            {
+                                   return {
+                                          error: INDEX_404_ERROR
+                                   };
+                            }
+                     }
+              }
+              else if (indexFile)
+              {
+                     executablePath = resolve(options.main, indexFile);
+
+                     if (existsSync(executablePath) === false)
+                     {
+                            return {
+                                   error: INDEX_404_ERROR
+                            };
+                     }
+              }
+
+              const result = await ncc(executablePath, {
                      filterAssetBase: process.cwd(),
                      assetBuilds: false,
-                     target: 'es2020',
+                     target: 'es6',
                      minify: true,
                      quiet: true,
               });
 
-              if (typeof result?.[ "code" ] === "string")
+              if (typeof result?.code === "string")
               {
-                     const destination = options[ "output" ];
-                     const code = result[ "code" ];
+                     const destination = options.output;
+                     const code = result.code;
 
                      const name = `${app}.js`;
 
