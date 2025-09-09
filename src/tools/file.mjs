@@ -121,6 +121,55 @@ export const bundleAssets = async function (options)
 };
 
 /**
+ * @private
+ * @type {String}
+ */
+const INDEX_404_ERROR = "Unable to locate main executable, defaults to main.ts OR index.ts. Please specify index file with the [-i,--index] flag";
+
+/**
+ * Gets the entry file path from the provided @see Object options
+ * 
+ * @public
+ * @param {Object} options 
+ * @returns {String}
+ */
+export const getEntryFile = (options) =>
+{
+       let executablePath = options.main;
+       let indexFile = options.index;
+
+       if (!indexFile && statSync(options.main).isFile() === false)
+       {
+              executablePath = resolve(options.main, "main.ts");
+
+              if (existsSync(executablePath) === false)
+              {
+                     executablePath = resolve(options.main, "index.ts");
+
+                     if (existsSync(executablePath) === false)
+                     {
+                            return {
+                                   error: INDEX_404_ERROR
+                            };
+                     }
+              }
+       }
+       else if (indexFile)
+       {
+              executablePath = resolve(options.main, indexFile);
+
+              if (existsSync(executablePath) === false)
+              {
+                     return {
+                            error: INDEX_404_ERROR
+                     };
+              }
+       }
+
+       return executablePath;
+};
+
+/**
  * Copies over all directories & files from the specified @see String path to the specified @see String destination
  * 
  * @public

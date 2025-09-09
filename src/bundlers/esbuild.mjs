@@ -24,12 +24,13 @@
 
 /**_-_-_-_-_-_-_-_-_-_-_-_-_- @Imports _-_-_-_-_-_-_-_-_-_-_-_-_-*/
 
-import * as vite from "vite";
+import { getEntryFile } from "../tools/file.mjs";
+import esbuild from "esbuild";
 
 /**_-_-_-_-_-_-_-_-_-_-_-_-_-          _-_-_-_-_-_-_-_-_-_-_-_-_-*/
 
 /**
- * Invokes the @see ncc bundler API to create a single minified .js executable
+ * Invokes the @see esbuild bundler API to create a single minified .js executable
  * 
  * @public
  * @param {String} app 
@@ -41,23 +42,19 @@ export const build = async (app, options, log) =>
 {
        try
        {
-              const builder = await vite.build({
-                     build: {
-                            minify: true,
-                            logLevel: "silent",
-                            outDir: options[ "output" ],
-                            target: "esnext",
-                            lib: {
-                                   entry: options[ "main" ],
-                                   fileName: app,
-                                   name: app
-                            },
-                     },
-                     customLogger: {
-                            info: () => { },
-                            error: () => { },
-                            warn: () => { }
-                     }
+              const executablePath = getEntryFile(options);
+
+              if (executablePath?.error)
+              {
+                     return executablePath;
+              }
+
+              await esbuild.build({
+                     entryPoints: [ executablePath ],
+                     bundle: true,
+                     minify: true,
+                     outfile: options[ "output" ],
+                     target: [ 'es2020' ],
               });
 
               return true;

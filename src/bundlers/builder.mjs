@@ -27,7 +27,9 @@
 import { getTimeString, sleep } from "../tools/time.mjs";
 import { error, ok, usage } from "../tools/cli.mjs";
 import * as file from "../tools/file.mjs";
+import * as esbuild from "./esbuild.mjs";
 import { resolve } from "node:path";
+import * as vite from "./vite.mjs";
 import * as tsc from "./tsc.mjs";
 import * as ncc from "./ncc.mjs";
 import chalk from "chalk";
@@ -121,10 +123,27 @@ export const build = async function (flags, log)
                      case "ncc":
                             success = await ncc.build(app, options, log);
                             break;
+                     case "esbuild":
+                            success = await esbuild.build(app, options, log);
+                            break;
                      case "tsc":
-                     default:
                             success = await tsc.build(app, options, log);
                             break;
+                     case "vite":
+                            success = await vite.build(app, options, log);
+                            break;
+                     default:
+                            if (!type)
+                            {
+                                   // if empty, use tsc
+                                   success = await tsc.build(app, options, log);
+                            }
+                            else
+                            {
+                                   // specified builder not found
+                                   log(chalk.yellowBright(`Specified builder [${type}] not found`), false);
+                                   return false;
+                            }
               };
 
               let statusText = "";
@@ -147,7 +166,7 @@ export const build = async function (flags, log)
 
        if (!skipBundle && success === true)
        {
-              const bundlingHeader = chalk.cyanBright(`Bundling ${app} @ ${chalk.yellowBright(getTimeString())}`);
+              const bundlingHeader = chalk.cyanBright(`Bundling ${app} @${chalk.yellowBright(getTimeString())}`);
 
               /** Copy over any resources/assets for the given @see app */
               const success = await file.bundleAssets({
