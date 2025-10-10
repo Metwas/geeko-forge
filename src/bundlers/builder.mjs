@@ -166,7 +166,7 @@ export const build = async function (flags, log)
 
        if (!skipBundle && success === true)
        {
-              const bundlingHeader = chalk.cyanBright(`Bundling ${app} @${chalk.yellowBright(getTimeString())}`);
+              const bundlingHeader = chalk.cyanBright(`Bundling ${app} @ ${chalk.yellowBright(getTimeString())}`);
 
               /** Copy over any resources/assets for the given @see app */
               const success = await file.bundleAssets({

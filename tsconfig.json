@@ -1,0 +1,20 @@
+{
+       "compilerOptions": {
+              "module": "nodenext",
+              "target": "es2015",
+              "outDir": "dist",
+              "lib": [
+                     "ES2015"
+              ],
+              "removeComments": true,
+              "experimentalDecorators": true,
+              "declaration": false,
+              "sourceMap": false
+       },
+       "exclude": [
+              "node_modules"
+       ],
+       "include": [
+              "tmp"
+       ]
+}

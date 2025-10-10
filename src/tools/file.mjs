@@ -212,8 +212,9 @@ export const copy = function (options, log)
 
                                           await copy({
                                                  destination: destinationPath,
+                                                 stripComments: stripComments,
                                                  path: filePath
-                                          });
+                                          }, log);
                                    }
                                    else
                                    {
@@ -298,7 +299,7 @@ export const readWriteAsync = function (options, log)
 
        return new Promise((resolve, _) =>
        {
-              readFile(path, (error, buffer) =>
+              readFile(path, async (error, buffer) =>
               {
                      if (error)
                      {
