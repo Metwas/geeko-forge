@@ -22,7 +22,7 @@
      SOFTWARE.
 */
 
-/**_-_-_-_-_-_-_-_-_-_-_-_-_- @Imports _-_-_-_-_-_-_-_-_-_-_-_-_-*/
+/**_-_-_-_-_-_-_-_-_-_-_-_-_- Imports  _-_-_-_-_-_-_-_-_-_-_-_-_-*/
 
 import { getTimeString, sleep } from "../tools/time.mjs";
 import { error, ok, usage } from "../tools/cli.mjs";
@@ -166,7 +166,7 @@ export const build = async function (flags, log)
 
        if (!skipBundle && success === true)
        {
-              const bundlingHeader = chalk.cyanBright(`Bundling ${app} @${chalk.yellowBright(getTimeString())}`);
+              const bundlingHeader = chalk.cyanBright(`Bundling ${app} @ ${chalk.yellowBright(getTimeString())}`);
 
               /** Copy over any resources/assets for the given @see app */
               const success = await file.bundleAssets({
