@@ -1,26 +1,19 @@
 /**
-     MIT License
-
-     @Copyright (c) Metwas
-
-     Permission is hereby granted, free of charge, to any person obtaining a copy
-     of this software and associated documentation files (the "Software"), to deal
-     in the Software without restriction, including without limitation the rights
-     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-     copies of the Software, and to permit persons to whom the Software is
-     furnished to do so, subject to the following conditions:
-
-     The above Copyright notice and this permission notice shall be included in all
-     copies or substantial portions of the Software.
-
-     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-     AUTHORS OR Copyright HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-     SOFTWARE.
-*/
+ * Copyright (c) Metwas
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
 /**_-_-_-_-_-_-_-_-_-_-_-_-_- Imports  _-_-_-_-_-_-_-_-_-_-_-_-_-*/
 
@@ -33,7 +26,7 @@ import chalk from "chalk";
 
 /**
  * CLI usage printable information
- * 
+ *
  * @public
  * @type {String}
  */
@@ -53,18 +46,17 @@ Options:
 
 /**
  * Gets the current @see process arguments offset by the headers (2)
- * 
+ *
  * @public
  * @returns {Array<String>}
  */
-export const getProcessArguments = function ()
-{
-       return process[ "argv" ].slice(2);
+export const getProcessArguments = function () {
+       return process["argv"].slice(2);
 };
 
 /**
  * Gradient color list
- * 
+ *
  * @public
  * @type {Array<String>}
  */
@@ -81,139 +73,129 @@ const COLORS = [
 
 /**
  * @see COLORS gradient frames
- * 
+ *
  * @public
  * @type {Array<String>}
  */
 const GRADIENT_FRAMES = [
-       ...Array.from({ length: COLORS.length - 1 }, () => COLORS[ 0 ]),
+       ...Array.from({ length: COLORS.length - 1 }, () => COLORS[0]),
        ...COLORS,
-       ...Array.from({ length: COLORS.length - 1 }, () => COLORS[ COLORS.length - 1 ]),
-       ...[ ...COLORS ].reverse(),
+       ...Array.from(
+              { length: COLORS.length - 1 },
+              () => COLORS[COLORS.length - 1],
+       ),
+       ...[...COLORS].reverse(),
 ];
 
 /**
  * Returns the sliced frames with @see offset
- * 
+ *
  * @public
- * @param {Number} offset 
+ * @param {Number} offset
  * @returns {Array<String>}
  */
-const frame = function (offset = 0) 
-{
-       const frames = GRADIENT_FRAMES.slice(offset, offset + (COLORS.length - 2));
+const frame = function (offset = 0) {
+       const frames = GRADIENT_FRAMES.slice(
+              offset,
+              offset + (COLORS.length - 2),
+       );
 
-       if (frames.length < COLORS.length - 2)
-       {
-              const filled = new Array(COLORS.length - frames.length - 2).fill(COLORS[ 0 ]);
+       if (frames.length < COLORS.length - 2) {
+              const filled = new Array(COLORS.length - frames.length - 2).fill(
+                     COLORS[0],
+              );
               frames.push(...filled);
        }
 
        return frames;
 };
 
-const GRADIENT = [ ...GRADIENT_FRAMES.map((_, i) => frame(i)) ].reverse();
+const GRADIENT = [...GRADIENT_FRAMES.map((_, i) => frame(i))].reverse();
 
 /**
  * Creates a mapped @see Array containing the progress bars referencing the @see COLORS array
- * 
+ *
  * @public
  * @returns {Array<String>}
  */
-const mapGradientAnimation = function ()
-{
+const mapGradientAnimation = function () {
        return GRADIENT.map(
-              (colors) => " " + colors.map((g) => chalk.hex(g)("▓")).join("")
+              (colors) => " " + colors.map((g) => chalk.hex(g)("▓")).join(""),
        );
 };
 
 /**
  * Creates an OK status badge with the optional message
- * 
+ *
  * @public
- * @param {String} message 
+ * @param {String} message
  * @returns {String}
  */
-export const ok = (message) =>
-{
+export const ok = (message) => {
        return `${chalk.bgGreenBright.whiteBright(" OK ")}${message ? chalk.greenBright(message) : ""}`;
 };
 
 /**
  * Creates an ERROR status badge with the optional error message
- * 
+ *
  * @public
- * @param {String} message 
+ * @param {String} message
  * @returns {String}
  */
-export const error = (message) =>
-{
+export const error = (message) => {
        return `${chalk.bgRedBright.whiteBright(` FAIL `)}${message ? chalk.redBright("\t" + message) : ""}`;
 };
 
 /**
  * Creates a new progress indicator @see log-update function
- * 
+ *
  * @public
  * @returns {Function}
  */
-export const logger = () =>
-{
+export const logger = () => {
        const logUpdate = createLogUpdate(process.stdout);
        const frames = mapGradientAnimation();
        let done = false;
        let i = 0;
 
-       return function (text, loader = true) 
-       {
-              if (text === false)
-              {
+       return function (text, loader = true) {
+              if (text === false) {
                      done = true;
                      logUpdate.done();
                      return;
               }
 
-              if (done === true)
-              {
+              if (done === true) {
                      done = false;
               }
 
               process.stdout.write(cursor.hide);
 
-              const loop = async (text) =>
-              {
-                     if (done)
-                     {
+              const loop = async (text) => {
+                     if (done) {
                             return;
                      }
 
-                     if (i < frames.length - 1)
-                     {
+                     if (i < frames.length - 1) {
                             i++;
-                     }
-                     else
-                     {
+                     } else {
                             i = 0;
                      }
 
-                     if (loader)
-                     {
-                            let frame = frames[ i ];
+                     if (loader) {
+                            let frame = frames[i];
                             logUpdate(`${text}${frame}`);
 
-                            if (done === false)
-                            {
+                            if (done === false) {
                                    await sleep(40);
                             }
 
                             loop(text);
-                     }
-                     else
-                     {
+                     } else {
                             logUpdate(text);
                      }
               };
 
               loop(text);
        };
-}
+};

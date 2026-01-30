@@ -1,30 +1,35 @@
 /**
-     MIT License
-
-     @Copyright (c) Metwas
-
-     Permission is hereby granted, free of charge, to any person obtaining a copy
-     of this software and associated documentation files (the "Software"), to deal
-     in the Software without restriction, including without limitation the rights
-     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-     copies of the Software, and to permit persons to whom the Software is
-     furnished to do so, subject to the following conditions:
-
-     The above Copyright notice and this permission notice shall be included in all
-     copies or substantial portions of the Software.
-
-     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-     AUTHORS OR Copyright HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-     SOFTWARE.
-*/
+ * Copyright (c) Metwas
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
 /**_-_-_-_-_-_-_-_-_-_-_-_-_- Imports  _-_-_-_-_-_-_-_-_-_-_-_-_-*/
 
-import { readFileSync, existsSync, writeFile, readFile, mkdirSync, readdirSync, statSync, unlinkSync, rmdirSync, readdir } from "node:fs";
+import {
+       readFileSync,
+       existsSync,
+       writeFile,
+       readFile,
+       mkdirSync,
+       readdirSync,
+       statSync,
+       unlinkSync,
+       rmdirSync,
+       readdir,
+} from "node:fs";
+
 import { resolve, sep, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import strip from "strip-comments";
@@ -37,29 +42,23 @@ export const __dirname = dirname(__filename);
 
 /**
  * Supported entry names for the application executables
- * 
+ *
  * @public
  * @type {Array<String>}
  */
-export const APPLICATION_INDEX_FILES = [
-       "index",
-       "main"
-];
+export const APPLICATION_INDEX_FILES = ["index", "main"];
 
 /**
  * Supported extension types for the bundlers
- * 
+ *
  * @public
  * @type {Array<String>}
  */
-export const APPLICATION_INDEX_EXTENSIONS = [
-       ".ts",
-       ".js"
-];
+export const APPLICATION_INDEX_EXTENSIONS = [".ts", ".js"];
 
 /**
  * Application common resource directory name
- * 
+ *
  * @public
  * @type {String}
  */
@@ -67,7 +66,7 @@ export const APP_COMMON_DIRECTORY = "common";
 
 /**
  * Root @see assets path
- * 
+ *
  * @public
  * @type {String}
  */
@@ -75,14 +74,12 @@ export const ROOT_ASSETS_PATH = resolve(process.cwd(), "./assets");
 
 /**
  * Bundles assets defined in the provided @see options.destination
- * 
- * @param {Object} options 
+ *
+ * @param {Object} options
  * @returns {Promise<void>}
  */
-export const bundleAssets = async function (options)
-{
-       try
-       {
+export const bundleAssets = async function (options) {
+       try {
               const destination = options.destination;
 
               const assetsPath = options.assets ?? ROOT_ASSETS_PATH;
@@ -90,32 +87,28 @@ export const bundleAssets = async function (options)
               const overrides = join(assetsPath, options.environment);
 
               /** First, attempt to copy the @see common default files */
-              if (existsSync(commonPath) === true)
-              {
+              if (existsSync(commonPath) === true) {
                      /** Copy all asset files/directories from the @see assetsPath directory */
                      await copy({
                             verbose: options.verbose,
                             destination: destination,
-                            path: commonPath
+                            path: commonPath,
                      });
               }
 
               /** Depending on the @see environment copy and replace any overrides within the @see common directory */
-              if (existsSync(overrides) === true)
-              {
+              if (existsSync(overrides) === true) {
                      await copy({
                             verbose: options.verbose,
                             destination: destination,
-                            path: overrides
+                            path: overrides,
                      });
               }
 
               return true;
-       }
-       catch (error)
-       {
+       } catch (error) {
               return {
-                     error: error.message
+                     error: error.message,
               };
        }
 };
@@ -124,44 +117,38 @@ export const bundleAssets = async function (options)
  * @private
  * @type {String}
  */
-const INDEX_404_ERROR = "Unable to locate main executable, defaults to main.ts OR index.ts. Please specify index file with the [-i,--index] flag";
+const INDEX_404_ERROR =
+       "Unable to locate main executable, defaults to main.ts OR index.ts. Please specify index file with the [-i,--index] flag";
 
 /**
  * Gets the entry file path from the provided @see Object options
- * 
+ *
  * @public
- * @param {Object} options 
+ * @param {Object} options
  * @returns {String}
  */
-export const getEntryFile = (options) =>
-{
+export const getEntryFile = (options) => {
        let executablePath = options.main;
        let indexFile = options.index;
 
-       if (!indexFile && statSync(options.main).isFile() === false)
-       {
+       if (!indexFile && statSync(options.main).isFile() === false) {
               executablePath = resolve(options.main, "main.ts");
 
-              if (existsSync(executablePath) === false)
-              {
+              if (existsSync(executablePath) === false) {
                      executablePath = resolve(options.main, "index.ts");
 
-                     if (existsSync(executablePath) === false)
-                     {
+                     if (existsSync(executablePath) === false) {
                             return {
-                                   error: INDEX_404_ERROR
+                                   error: INDEX_404_ERROR,
                             };
                      }
               }
-       }
-       else if (indexFile)
-       {
+       } else if (indexFile) {
               executablePath = resolve(options.main, indexFile);
 
-              if (existsSync(executablePath) === false)
-              {
+              if (existsSync(executablePath) === false) {
                      return {
-                            error: INDEX_404_ERROR
+                            error: INDEX_404_ERROR,
                      };
               }
        }
@@ -171,21 +158,17 @@ export const getEntryFile = (options) =>
 
 /**
  * Copies over all directories & files from the specified @see String path to the specified @see String destination
- * 
+ *
  * @public
  * @param {{ path: String, destination: String, stripComments: Boolean }} options
  * @returns {Promise<void>}
  */
-export const copy = function (options, log)
-{
-       return new Promise((resolve, _) =>
-       {
+export const copy = function (options, log) {
+       return new Promise((resolve, _) => {
               const { path, destination, stripComments } = options;
 
-              readdir(path, async (error, files) =>
-              {
-                     if (error)
-                     {
+              readdir(path, async (error, files) => {
+                     if (error) {
                             return resolve(null);
                      }
 
@@ -194,47 +177,66 @@ export const copy = function (options, log)
 
                      let promises = [];
 
-                     for (; index < length; ++index)
-                     {
-                            try
-                            {
-                                   const file = files[ index ];
+                     for (; index < length; ++index) {
+                            try {
+                                   const file = files[index];
                                    const filePath = join(path, file);
-                                   const destinationPath = join(destination, file);
+                                   const destinationPath = join(
+                                          destination,
+                                          file,
+                                   );
 
-                                   if (statSync(filePath).isDirectory() === true)
-                                   {
+                                   if (
+                                          statSync(filePath).isDirectory() ===
+                                          true
+                                   ) {
                                           /** Create new directory at @see destination */
-                                          if (existsSync(destinationPath) === false)
-                                          {
-                                                 mkdirSync(destinationPath, { recursive: true });
+                                          if (
+                                                 existsSync(destinationPath) ===
+                                                 false
+                                          ) {
+                                                 mkdirSync(destinationPath, {
+                                                        recursive: true,
+                                                 });
                                           }
 
-                                          await copy({
-                                                 destination: destinationPath,
-                                                 stripComments: stripComments,
-                                                 path: filePath
-                                          }, log);
-                                   }
-                                   else
-                                   {
-                                          if (options[ "debug" ] === true && log)
-                                          {
-                                                 log(`${chalk.green("CREATE")} ${chalk.yellow("FILE")} ${destinationPath}`, false);
+                                          await copy(
+                                                 {
+                                                        destination:
+                                                               destinationPath,
+                                                        stripComments:
+                                                               stripComments,
+                                                        path: filePath,
+                                                 },
+                                                 log,
+                                          );
+                                   } else {
+                                          if (
+                                                 options["debug"] === true &&
+                                                 log
+                                          ) {
+                                                 log(
+                                                        `${chalk.green("CREATE")} ${chalk.yellow("FILE")} ${destinationPath}`,
+                                                        false,
+                                                 );
                                           }
 
                                           /** Write file at @see destination - This will by default replace any existing files */
-                                          promises.push(readWriteAsync({
-                                                 destination: destinationPath,
-                                                 stripComments: stripComments,
-                                                 path: filePath
-                                          }, log));
+                                          promises.push(
+                                                 readWriteAsync(
+                                                        {
+                                                               destination:
+                                                                      destinationPath,
+                                                               stripComments:
+                                                                      stripComments,
+                                                               path: filePath,
+                                                        },
+                                                        log,
+                                                 ),
+                                          );
                                    }
-                            }
-                            catch (error)
-                            {
-                                   if (log)
-                                   {
+                            } catch (error) {
+                                   if (log) {
                                           log(error, false);
                                    }
                             }
@@ -248,34 +250,30 @@ export const copy = function (options, log)
 
 /**
  * Gets the main entry absolute path for the given application @see String name
- * 
+ *
  * @public
- * @param {String} name 
+ * @param {String} name
  * @returns {String}
  */
-export const getApplicationMain = function (name)
-{
+export const getApplicationMain = function (name) {
        const root = process.cwd();
 
        /** Check if application @see name directory exists */
-       if (existsSync(root) === true)
-       {
+       if (existsSync(root) === true) {
               const eLength = APPLICATION_INDEX_EXTENSIONS.length;
               const length = APPLICATION_INDEX_FILES.length;
               let index = 0;
 
-              for (; index < length; ++index)
-              {
-                     const main = APPLICATION_INDEX_FILES[ index ];
+              for (; index < length; ++index) {
+                     const main = APPLICATION_INDEX_FILES[index];
                      let eIndex = 0;
 
-                     for (; eIndex < eLength; ++eIndex)
-                     {
-                            const extension = APPLICATION_INDEX_EXTENSIONS[ eIndex ];
+                     for (; eIndex < eLength; ++eIndex) {
+                            const extension =
+                                   APPLICATION_INDEX_EXTENSIONS[eIndex];
                             const filePath = `${root}${sep}src${sep}${main}${extension}`;
 
-                            if (existsSync(filePath) === true)
-                            {
+                            if (existsSync(filePath) === true) {
                                    /** Return the first result */
                                    return filePath;
                             }
@@ -288,66 +286,57 @@ export const getApplicationMain = function (name)
 
 /**
  * Reads and writes to & from the given path parameters asynchronously
- * 
+ *
  * @public
- * @param {Object} options 
+ * @param {Object} options
  * @returns {Promise<Buffer>}
  */
-export const readWriteAsync = function (options, log)
-{
+export const readWriteAsync = function (options, log) {
        const { path, destination, stripComments } = options;
 
-       return new Promise((resolve, _) =>
-       {
-              readFile(path, async (error, buffer) =>
-              {
-                     if (error)
-                     {
+       return new Promise((resolve, _) => {
+              readFile(path, async (error, buffer) => {
+                     if (error) {
                             return resolve();
                      }
 
-                     if (stripComments && Buffer.isBuffer(buffer))
-                     {
-                            buffer = Buffer.from(strip(buffer.toString("utf-8")));
+                     if (stripComments && Buffer.isBuffer(buffer)) {
+                            buffer = Buffer.from(
+                                   strip(buffer.toString("utf-8")),
+                            );
                      }
 
-                     writeFile(destination, buffer, (error) =>
-                     {
-                            if (error)
-                            {
-                                   if (log)
-                                   {
-                                          log(`${chalk.redBright(error.message)}`, false);
+                     writeFile(destination, buffer, (error) => {
+                            if (error) {
+                                   if (log) {
+                                          log(
+                                                 `${chalk.redBright(error.message)}`,
+                                                 false,
+                                          );
                                    }
                             }
 
                             resolve(buffer);
                      });
               });
-
        });
 };
 
 /**
  * Loads the root @see tsconfig.json file
- * 
+ *
  * @public
- * @param {Boolean} quiet 
+ * @param {Boolean} quiet
  * @returns {Object}
  */
-export const loadRootTsConfig = function (quiet)
-{
-       try
-       {
+export const loadRootTsConfig = function (quiet) {
+       try {
               const rootPath = resolve(process.cwd(), "./tsconfig.json");
               const file = readFileSync(rootPath);
 
               return JSON.parse(file);
-       }
-       catch (error)
-       {
-              if (!quiet)
-              {
+       } catch (error) {
+              if (!quiet) {
                      console.error(error.message);
               }
        }
@@ -355,18 +344,15 @@ export const loadRootTsConfig = function (quiet)
 
 /**
  * Recusively cleans all files and directories from the given @see String path
- * 
+ *
  * @public
- * @param {String} path 
+ * @param {String} path
  */
-export const clean = function (path)
-{
-       try
-       {
+export const clean = function (path) {
+       try {
               const resolved = resolve(path);
 
-              if (existsSync(resolved) === false)
-              {
+              if (existsSync(resolved) === false) {
                      return;
               }
 
@@ -374,24 +360,19 @@ export const clean = function (path)
               const length = files.length;
               let index = 0;
 
-              for (; index < length; ++index)
-              {
-                     const file = files[ index ];
+              for (; index < length; ++index) {
+                     const file = files[index];
                      const filePath = join(resolved, file);
 
                      /** Recursively clean/unlink files within the @see directory */
-                     if (statSync(filePath).isDirectory() === true)
-                     {
+                     if (statSync(filePath).isDirectory() === true) {
                             clean(filePath);
-                     }
-                     else
-                     {
+                     } else {
                             unlinkSync(filePath);
                      }
               }
 
               /** Finally remove directory @see resolved */
               rmdirSync(resolved);
-       }
-       catch (error) { }
+       } catch (error) {}
 };
