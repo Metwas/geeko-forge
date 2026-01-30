@@ -1,6 +1,6 @@
 {
        "name": "geeko-forge",
-       "version": "1.0.0",
+       "version": "1.1.2",
        "description": "Geeko Builder Toolset",
        "main": "./src/app.build.mjs",
        "scripts": {
@@ -11,14 +11,12 @@
        "dependencies": {
               "@vercel/ncc": "^0.38.4",
               "chalk": "^5.6.2",
+              "esbuild": "^0.25.12",
               "log-update": "^6.1.0",
               "minimist": "^1.2.8",
               "sisteransi": "^1.0.5",
               "strip-comments": "^2.0.1",
-              "vite": "^7.1.9"
-       },
-       "devDependencies": {
-              "esbuild": "^0.25.10",
-              "typescript": "^5.9.3"
+              "typescript": "^5.9.3",
+              "vite": "^7.3.1"
        }
 }
